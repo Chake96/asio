@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef ASIO_MESSAGE_QUEUE_H_
+#define ASIO_MESSAGE_QUEUE_H_
+
 #include "net_common.h"
 #include <boost/noncopyable.hpp>
 
@@ -98,3 +101,5 @@ namespace net{
 
 	};
 }
+
+#endif

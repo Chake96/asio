@@ -34,7 +34,7 @@ namespace Net {
 			protected:
 				net::message<uint8_t> proper_uint8t_msg;
 				net::message<std::string> proper_str_msg;
-
+				std::size_t init_size = std::vector<uint8_t>().size() + sizeof(net::message_header<uint8_t>);
 
 				const std::size_t remove_count = 10;
 				net::message<int> remove_from_msg;
@@ -80,46 +80,64 @@ namespace Net {
 		TEST_F(MessageTest, AddData) {
 			std::vector<uint8_t> bytes = {1, 3, 5};
 			std::vector<uint16_t> dbytes = {2,4,6};
-			std::vector<uint32_t> tbytes = {1,3,4,6};
-			std::vector<std::string> strings = {"test", "hello",""};
+			std::vector<uint32_t> qbytes = {1,3,4,6};
+			std::vector<const char*> strings = {"test", "hello",""};
 
-			std::size_t cmp_size = 49U;
-			std::size_t cmp_size_string = 49U;
+			using byte_type_size = std::decay<decltype(*bytes.begin())>::type;
+			using dbyte_type_size = std::decay<decltype(*dbytes.begin())>::type;
+			using qbyte_type_size = std::decay<decltype(*qbytes.begin())>::type;
+			using str_type_size = std::decay<decltype(*strings.begin())>::type;
+
+			
+			std::size_t bytes_size = init_size + sizeof(byte_type_size)*bytes.size(),
+						dbytes_size = bytes_size + sizeof(dbyte_type_size)*dbytes.size(),
+						qbytes_size =  dbytes_size + sizeof(qbyte_type_size) *qbytes.size(),
+						str_size =  qbytes_size + sizeof(str_type_size) * strings.size();
+
+			EXPECT_EQ(proper_uint8t_msg.size(), init_size);
 
 			for (auto byte : bytes) {
 				proper_uint8t_msg << byte;
 			}
-			
+
+
+			EXPECT_EQ(proper_uint8t_msg.size(), bytes_size);
+
 			for (auto byte : dbytes) {
 				proper_uint8t_msg << byte;
 			}
 
-			for (auto byte : tbytes) {
+			EXPECT_EQ(proper_uint8t_msg.size(), dbytes_size);
+			
+			for (auto byte : qbytes) {
 				proper_uint8t_msg << byte;
 			}
 
+			EXPECT_EQ(proper_uint8t_msg.size(), qbytes_size);
 
-			EXPECT_EQ(proper_uint8t_msg.size(), cmp_size);
-
-
-			for (auto byte : strings) {
-				proper_uint8t_msg << byte;
+			for (auto str : strings) {
+				proper_uint8t_msg << str;
 			}
-			EXPECT_EQ(proper_uint8t_msg.size(), cmp_size);
+
+			EXPECT_EQ(proper_uint8t_msg.size(), str_size);
 
 		}
 
 
-		/*TEST_F(MessageTest, RemoveDataTest) {
-			auto removed_val = 0;
-			for (auto removal_it = MessageTest::remove_count-1; removal_it >= 0; removal_it--) {
-				 auto temp = 0;
-				 remove_from_msg >> temp;
-				 EXPECT_EQ(removal_it, temp);
+		TEST_F(MessageTest, RemoveDataTest) {
+			uint8_t byte{0}; //removing 1 byte per call
+			const auto start_size = remove_from_msg.size();
+			for (size_t current_size = remove_count; current_size > 0; current_size--) {
+				remove_from_msg >> byte;
 			}
-			ASSERT_EQ(remove_from_msg.size(), 0);
+			ASSERT_EQ(remove_from_msg.size(), start_size - remove_count);
 
-		}*/
+			uint16_t dbyte{0}; //removing 2 bytes per call
+			for (size_t current_size = remove_count; current_size > 0; current_size--) {
+				remove_from_msg >> dbyte;
+			}
+			ASSERT_EQ(remove_from_msg.size(), start_size - remove_count - remove_count*2);
+		}
 
 	}
 

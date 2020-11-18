@@ -19,10 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="net_client.h" />
+    <ClInclude Include="net_connection.h" />
     <ClInclude Include="message_queue.h" />
     <ClInclude Include="net_common.h" />
     <ClInclude Include="net_includes.h" />
     <ClInclude Include="net_message.h" />
+    <ClInclude Include="net_server.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
