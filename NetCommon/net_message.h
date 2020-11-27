@@ -72,12 +72,12 @@ namespace net{
 
 	template<class T>
 	struct shared_message {
-		std::shared_ptr<connection<T>> remove = nullptr;
-		message<T> msg;
+		std::shared_ptr<connection<T>> remote = nullptr;
+		message<T> message;
 
 		friend std::ostream& operator<<(std::ostream* os, const shared_message<T>& msg) {
-			os << msg.msg;
-			return o;
+			os << msg.message;
+			return os;
 		}
 	};
 

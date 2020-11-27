@@ -4,41 +4,42 @@
 #define ASIO_MESSAGE_QUEUE_H_
 
 #include "net_common.h"
-#include <boost/noncopyable.hpp>
 
 namespace net{
 		
 	template<class T>
-	class message_queue : boost::noncopyable{
+	class message_queue{
 		public:
 			message_queue() = default;
+			message_queue(const message_queue<T>&) = delete;
+			virtual ~message_queue(){this->clear();}
 
 			const auto begin() noexcept{
-				return this->_dqueue.begin();
+				return this->dqueue_.begin();
 			}
 
 			const auto end() noexcept{
-				return this->_dqueue.end();
+				return this->dqueue_.end();
 			}
 
 			const T& front() { //read-only
 				std::scoped_lock queue_lock(this->queue_mutex);
-				return this->_dqueue.front();
+				return this->dqueue_.front();
 			}
 			
 			const T& back() { //read-only
 				std::scoped_lock queue_lock(this->queue_mutex);
-				return this->_dqueue.back();
+				return this->dqueue_.back();
 			}
 
 			void pop_front() { //write
 				std::scoped_lock queue_lock(this->queue_mutex);
-				this->_dqueue.pop_front();
+				this->dqueue_.pop_front();
 			}
 
 			void pop_back() {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				this->_dqueue.pop_back();
+				this->dqueue_.pop_back();
 			}
 
 			void push_front(T& value) {
@@ -52,17 +53,17 @@ namespace net{
 
 			void clear() noexcept {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				this->_dqueue.clear();
+				this->dqueue_.clear();
 			}
 
 			size_t size() {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				return this->_dqueue.size();
+				return this->dqueue_.size();
 			}
 
 			bool empty() {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				return this->_dqueue.empty();
+				return this->dqueue_.empty();
 			}
 
 			void wait() {
@@ -78,26 +79,26 @@ namespace net{
 			std::condition_variable blocking_var;
 
 			//possibly convert to an std::optional return value
-			void _read_call(void(std::deque<T>::*mem_func)(),  T* return_value) {
+			void read_call(void(std::deque<T>::*mem_func)(),  T* return_value) {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				*return_value = (this->_dqueue.*mem_func)();
+				*return_value = (this->dqueue_.*mem_func)();
 			}
 
 			//calls the function, does not return anything
-			void _read_call(void(std::deque<T>::* mem_func)()) {
+			void read_call(void(std::deque<T>::* mem_func)()) {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				(this->_dqueue.*mem_func)();
+				(this->dqueue_.*mem_func)();
 			}
 
-			void _write_call(T& input_val, void(std::deque<T>::* mem_func)(const T&)) {
+			void write_call(T& input_val, void(std::deque<T>::* mem_func)(const T&)) {
 				std::scoped_lock queue_lock(this->queue_mutex);
-				(this->_dqueue.*mem_func)(input_val);
+				(this->dqueue_.*mem_func)(input_val);
 				std::unique_lock<std::mutex> u_lock(this->blocking_mutex);
 				blocking_var.notify_one();
 			}
 
 		private:
-			std::deque<T> _dqueue;
+			std::deque<T> dqueue_;
 
 	};
 }
