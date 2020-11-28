@@ -32,7 +32,7 @@ namespace net {
 			void message_client(std::shared_ptr<net::connection<T>> client_connection, const net::message<T>& msg);
 			void message_all(const net::message<T>& msg);
 
-			void update(std::size_t n_max_msgs = 0);
+			void update(std::size_t n_max_msgs = -1);
 
 
 		protected:

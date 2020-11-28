@@ -47,7 +47,7 @@ namespace net{
 			}
 
 			void push_back(T value) {
-				_write_call(value, &std::deque<T>::push_back);
+				this->write_call(value, &std::deque<T>::push_back);
 			}
 
 

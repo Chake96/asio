@@ -12,12 +12,19 @@ namespace net{
 	struct message_header {
 		T id{};
 		size_t size = 0;
+
+		message_header() = default;
+		message_header(T id_in):id(id_in){};
 	};
 
 	template<class T>
 	struct message {
 		message_header<T> header{};
 		std::vector<uint8_t> body; //made up of bytes
+
+		//ctors
+		message() = default;
+		message(T msg_id):header(msg_id){};
 
 		const size_t size() {
 			return sizeof(message_header<T>) + body.size();
